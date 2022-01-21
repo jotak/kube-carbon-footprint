@@ -5,7 +5,7 @@ WORK IN PROGRESS
 
 ## Running
 
-Using Prometheus in OpenShift, pass the Prometheus address and admin token as program arguments:
+Using Prometheus in OpenShift, pass the Prometheus address and admin token as program arguments, as well as the kubeconfig (if not running in-cluster):
 
 E.g.:
 
@@ -16,9 +16,18 @@ E.g.:
 Endpoints:
 
 - CPU usage: `/api/metrics/cpu`
+- Pod carbon footprint: `/api/metrics/carbonfootprint`
 - Power consumption per instance type: `/api/dataset/instancetype/{instanceType}` (e.g. `/api/dataset/instancetype/a1.medium`)
 - Stats per region: `/api/dataset/region/{region}` (e.g. `/api/dataset/region/us-east-1`)
 - Datacenter info for pod: `api/datacenter/namespace/{namespace}/pod/{pod}` (e.g. `api/datacenter/namespace/default/pod/my-pod`)
+
+
+TODO:
+- maybe after all, use path params in `/api/metrics/carbonfootprint` instead of query params
+- expose carbon footmetrics metrics for a set of watched pods / namespaces
+- create grafana dashboard for ^^^
+- create openshift console plugin that shows pods carbon footprint
+- provide deployment YAML
 
 ## License and credits
 

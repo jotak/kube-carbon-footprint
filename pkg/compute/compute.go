@@ -2,6 +2,7 @@ package compute
 
 import (
 	"github.com/prometheus/common/model"
+
 	"github.com/sherine-k/kube-carbon-footprint/pkg/dataset"
 )
 
@@ -34,16 +35,18 @@ func carbonFootprintFromLoad(value model.SampleValue, instancetype dataset.Insta
 	//gCO₂eq = PUE * Power * ZoneCO2e / 1000
 	var cfp model.SampleValue
 	power := model.SampleValue(0)
-	if value < 10 {
-		power = model.SampleValue(instancetype.LoadIdle) + value*(model.SampleValue(instancetype.Load10)-model.SampleValue(instancetype.LoadIdle))/10
-	}
-	if value > 10 && value < 50 {
-		power = model.SampleValue(instancetype.Load10) + value*(model.SampleValue(instancetype.Load50)-model.SampleValue(instancetype.Load10))/(50-10)
-	}
-	if value > 50 && value < 100 {
-		power = model.SampleValue(instancetype.Load50) + value*(model.SampleValue(instancetype.Load100)-model.SampleValue(instancetype.Load50))/(100-50)
+	if value <= 10 {
+		power = interpolate(value, 0, 10, model.SampleValue(instancetype.LoadIdle), model.SampleValue(instancetype.Load10))
+	} else if value <= 50 {
+		power = interpolate(value, 10, 50, model.SampleValue(instancetype.Load10), model.SampleValue(instancetype.Load50))
+	} else {
+		power = interpolate(value, 50, 100, model.SampleValue(instancetype.Load50), model.SampleValue(instancetype.Load100))
 	}
 	cfp = power * model.SampleValue(region.PUE) * model.SampleValue(region.CO2e) / 1000
 	//region.PUE * region.CO2e * insta
 	return cfp
+}
+
+func interpolate(value, usageLow, usageHigh, powerLow, powerHigh model.SampleValue) model.SampleValue {
+	return powerLow + value*(powerHigh-powerLow)/(usageHigh-usageLow)
 }
